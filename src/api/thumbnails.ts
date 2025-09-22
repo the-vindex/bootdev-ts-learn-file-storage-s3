@@ -49,5 +49,6 @@ export async function handlerUploadThumbnail(cfg: ApiConfig, req: BunRequest) {
 
   // TODO: implement the upload here
 
+
   return respondWithJSON(200, null);
 }

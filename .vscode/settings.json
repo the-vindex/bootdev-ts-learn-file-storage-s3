@@ -1,0 +1,19 @@
+{
+  "testing.defaultGutterClickAction": "run",
+  "testing.automaticallyOpenPeekView": "never",
+  "testing.followRunningTest": true,
+  "testing.gutterEnabled": true,
+  "testing.openTesting": "openExplorer",
+  "typescript.preferences.includePackageJsonAutoImports": "auto",
+  "typescript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "files.associations": {
+    "*.test.ts": "typescript",
+    "*.test.js": "javascript"
+  },
+  "vitest.enable": false,
+  "jest.enable": false,
+  "testing.automaticallyOpenTestResults": "openExplorer",
+  "bun.enable": false,
+  "bun.testCommand": "bun test"
+}

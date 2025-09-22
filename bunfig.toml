@@ -1,0 +1,6 @@
+[test]
+# Configure test runner
+preload = ["./tests/setup.ts"]
+timeout = 30000
+
+
