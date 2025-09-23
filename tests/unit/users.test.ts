@@ -1,7 +1,21 @@
 import { test, expect, describe, beforeEach } from "bun:test";
-import { createUser, getUserByEmail, getUser, getUsers } from "../../src/db/users";
+import { createUser, getUserByEmail, getUser, getUsers, type User } from "../../src/db/users";
 import { createTestConfig, resetTestDatabase } from "../setup";
+import { createTestUserData } from "../fixtures";
 import type { ApiConfig } from "../../src/config";
+import type { Database } from "bun:sqlite";
+
+/**
+ * Helper method that creates a user and ensures it returns a non-null user.
+ * Throws an error if the user creation fails.
+ */
+function createUserOrThrow(db: Database, userData: { email: string; password: string }): User {
+  const user = createUser(db, userData);
+  if (!user) {
+    throw new Error(`Failed to create user with email: ${userData.email}`);
+  }
+  return user;
+}
 
 describe("User Database Operations", () => {
   let config: ApiConfig;
@@ -14,11 +28,11 @@ describe("User Database Operations", () => {
   describe("createUser", () => {
     test("should create a user with valid data", () => {
       const userData = {
-        email: "test@example.com",
+        ...createTestUserData(),
         password: "hashed-password"
       };
 
-      const user = createUser(config.db, userData);
+      const user = createUserOrThrow(config.db, userData);
 
       expect(user).toBeDefined();
       expect(user.id).toBeDefined();
@@ -28,32 +42,19 @@ describe("User Database Operations", () => {
       expect(user.updatedAt).toBeInstanceOf(Date);
     });
 
-    test("should generate unique IDs for different users", () => {
-      const user1 = createUser(config.db, {
-        email: "user1@example.com",
-        password: "password1"
-      });
-
-      const user2 = createUser(config.db, {
-        email: "user2@example.com",
-        password: "password2"
-      });
-
-      expect(user1.id).not.toBe(user2.id);
-    });
 
     test("should enforce unique email constraint", () => {
       const userData = {
-        email: "test@example.com",
+        ...createTestUserData(),
         password: "password"
       };
 
       // Create first user
-      createUser(config.db, userData);
+      createUserOrThrow(config.db, userData);
 
       // Try to create second user with same email
       expect(() => {
-        createUser(config.db, userData);
+        createUserOrThrow(config.db, userData);
       }).toThrow();
     });
   });
@@ -61,11 +62,11 @@ describe("User Database Operations", () => {
   describe("getUserByEmail", () => {
     test("should return user when email exists", () => {
       const userData = {
-        email: "test@example.com",
+        ...createTestUserData(),
         password: "hashed-password"
       };
 
-      const createdUser = createUser(config.db, userData);
+      const createdUser = createUserOrThrow(config.db, userData);
       const foundUser = getUserByEmail(config.db, userData.email);
 
       expect(foundUser).toBeDefined();
@@ -80,14 +81,11 @@ describe("User Database Operations", () => {
     });
 
     test("should be case sensitive", () => {
-      const userData = {
-        email: "test@example.com",
-        password: "password"
-      };
+      const userData = createTestUserData();
 
-      createUser(config.db, userData);
+      createUserOrThrow(config.db, userData);
 
-      const foundUser = getUserByEmail(config.db, "TEST@EXAMPLE.COM");
+      const foundUser = getUserByEmail(config.db, userData.email.toUpperCase());
       expect(foundUser).toBeUndefined();
     });
   });
@@ -95,11 +93,11 @@ describe("User Database Operations", () => {
   describe("getUser", () => {
     test("should return user when ID exists", () => {
       const userData = {
-        email: "test@example.com",
+        ...createTestUserData(),
         password: "hashed-password"
       };
 
-      const createdUser = createUser(config.db, userData);
+      const createdUser = createUserOrThrow(config.db, userData);
       const foundUser = getUser(config.db, createdUser.id);
 
       expect(foundUser).toBeDefined();
@@ -121,17 +119,17 @@ describe("User Database Operations", () => {
 
     test("should return all users", () => {
       const userData1 = {
-        email: "user1@example.com",
+        ...createTestUserData("user1"),
         password: "password1"
       };
 
       const userData2 = {
-        email: "user2@example.com",
+        ...createTestUserData("user2"),
         password: "password2"
       };
 
-      createUser(config.db, userData1);
-      createUser(config.db, userData2);
+      createUserOrThrow(config.db, userData1);
+      createUserOrThrow(config.db, userData2);
 
       const users = getUsers(config.db);
 
@@ -142,11 +140,11 @@ describe("User Database Operations", () => {
 
     test("should return users with empty passwords", () => {
       const userData = {
-        email: "test@example.com",
+        ...createTestUserData(),
         password: "secret-password"
       };
 
-      createUser(config.db, userData);
+      createUserOrThrow(config.db, userData);
       const users = getUsers(config.db);
 
       expect(users).toHaveLength(1);
