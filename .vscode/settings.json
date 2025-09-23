@@ -11,11 +11,9 @@
     "*.test.ts": "typescript",
     "*.test.js": "javascript"
   },
-  "vitest.enable": false,
-  "jest.enable": false,
+    "jest.enable": false,
   "testing.automaticallyOpenTestResults": "openExplorer",
-  "bun.enable": false,
-  "bun.testCommand": "bun test",
+  
     // The path to the `bun` executable.
     "bun.runtime": "bun",
 
@@ -28,6 +26,5 @@
     // Glob pattern to find test files. Defaults to the value shown below.
     "bun.test.filePattern": "**/*{.test.,.spec.,_test_,_spec_}{js,ts,tsx,jsx,mts,cts,cjs,mjs}",
   
-    // The custom script to call for testing instead of `bun test`
-    "bun.test.customScript": "bun test --inspect=ws://localhost:6499/pc6ve19en0o"
+  
 }

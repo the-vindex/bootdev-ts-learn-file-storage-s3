@@ -1,14 +1,13 @@
 {
   "version": "0.2.0",
   "configurations": [
-
     {
       "type": "bun",
       "request": "launch",
       "name": "Debug Bun",
 
       // The path to a JavaScript or TypeScript file to run.
-      "program": "${file}",
+      "program": "src/index.ts",
 
       // The arguments to pass to the program, if any.
       "args": [],
@@ -38,7 +37,7 @@
 
       // The arguments to pass to the `bun` executable, if any.
       // Unlike `args`, these are passed to the executable itself, not the program.
-      "runtimeArgs": ["--inspect=ws://localhost:6499/pc6ve19en0o"],
+      "runtimeArgs": [],
     },
     {
       "type": "bun",
@@ -47,7 +46,7 @@
 
       // The URL of the WebSocket inspector to attach to.
       // This value can be retrieved by using `bun --inspect`.
-      "url": "ws://localhost:6499/pc6ve19en0o",
+      "url": "ws://localhost:6499/",
       // Optional path mapping for remote debugging
       "localRoot": "${workspaceFolder}",
       "remoteRoot": "/app",
