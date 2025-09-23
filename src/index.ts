@@ -1,5 +1,5 @@
 import { cfg } from "./config";
-import { createServer } from "./server";
+import { createServer } from "./server.js";
 import { ensureAssetsDir } from "./api/assets";
 
 ensureAssetsDir(cfg);

@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { hashPassword } from "../src/auth";
 import { createUser } from "../src/db/users";
+import { createVideo, type Video } from "../src/db/videos";
 import type { ApiConfig } from "../src/config";
 
 export function generateUniqueEmail(prefix: string = "test"): string {
@@ -28,11 +29,13 @@ export async function createTestUser(
   const finalUserData = { ...defaultUserData, ...userData };
 
   const hashedPassword = await hashPassword(finalUserData.password);
+  const newUser = createUser(config.db, {
+    email: finalUserData.email,
+    password: hashedPassword
+  });
+
   return {
-    user: createUser(config.db, {
-      email: finalUserData.email,
-      password: hashedPassword
-    }),
+    user: newUser!,
     credentials: finalUserData
   };
 }
@@ -48,15 +51,22 @@ export function buildRequest(
 ): Request {
   const { method = "GET", body, headers = {} } = options;
 
-  const defaultHeaders = {
-    "Content-Type": "application/json",
-    ...headers
-  };
+  // Don't set Content-Type header for FormData - let the browser set it with boundary
+  const defaultHeaders = body instanceof FormData 
+    ? { ...headers } 
+    : { "Content-Type": "application/json", ...headers };
+
+  let requestBody: BodyInit | undefined;
+  if (body instanceof FormData) {
+    requestBody = body;
+  } else if (body) {
+    requestBody = JSON.stringify(body);
+  }
 
   return new Request(`${baseUrl}${path}`, {
     method,
     headers: defaultHeaders,
-    body: body ? JSON.stringify(body) : undefined
+    body: requestBody
   });
 }
 
@@ -117,4 +127,13 @@ export async function makeAuthenticatedRequest(
       Authorization: `Bearer ${token}`
     }
   });
+}
+
+export async function createTestVideo(config: ApiConfig, userId: string): Promise<Video> {
+  const newVideo = createVideo(config.db, {
+    userID: userId,
+    title: "Test Video",
+    description: "Test Description",
+  });
+  return newVideo!;
 }

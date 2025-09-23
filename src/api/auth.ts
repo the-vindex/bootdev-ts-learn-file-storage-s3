@@ -6,11 +6,17 @@ import {
 } from "../auth";
 import { type ApiConfig } from "../config";
 import { createRefreshToken, revokeRefreshToken } from "../db/refresh-tokens";
-import { getUserByEmail, getUserByRefreshToken } from "../db/users";
+import { getUserByEmail, getUserByRefreshToken, type User } from "../db/users";
 import { BadRequestError, UserNotAuthenticatedError } from "./errors";
 import { respondWithJSON } from "./json";
 
-export async function handlerLogin(cfg: ApiConfig, req: Request) {
+export type LoginResponse = {
+  user: User;
+  token: string;
+  refreshToken: string;
+};
+
+export async function handlerLogin(cfg: ApiConfig, req: Request): Promise<Response> {
   const { email, password } = await req.json();
   if (!email || !password) {
     throw new BadRequestError("Email and password are required");
@@ -38,11 +44,13 @@ export async function handlerLogin(cfg: ApiConfig, req: Request) {
     expiresAt: new Date(Date.now() + refreshExpiresMs),
   });
 
-  return respondWithJSON(200, {
+  const response: LoginResponse = {
     user,
     token: accessToken,
     refreshToken: refreshToken,
-  });
+  };
+
+  return respondWithJSON(200, response);
 }
 
 export async function handlerRefresh(cfg: ApiConfig, req: Request) {

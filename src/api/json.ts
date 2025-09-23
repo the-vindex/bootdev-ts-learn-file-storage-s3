@@ -1,4 +1,4 @@
-export function respondWithJSON(status: number, payload: any) {
+export function respondWithJSON<T>(status: number, payload: T): Response {
   const body = JSON.stringify(payload);
   return new Response(body, {
     status,

@@ -1,6 +1,7 @@
 import { test, expect, describe, beforeEach, afterEach } from "bun:test";
 import { resetTestDatabase, createTestServer, stopTestServer, type TestServer } from "../setup";
 import { createTestUser, makeLoginRequest, makeAuthenticatedRequest } from "../fixtures";
+import type { LoginResponse } from "../../src/api/auth";
 
 describe("Auth API", () => {
   let testServer: TestServer;
@@ -75,8 +76,7 @@ describe("Auth API", () => {
       const { credentials } = await createTestUser(testServer.config);
 
       // Login to get refresh token
-      const loginResponse = await makeLoginRequest(testServer.baseUrl, credentials);
-      const loginData = await loginResponse.json();
+      const loginData = await makeLoginRequestSuccess(testServer, credentials);
       const refreshToken = loginData.refreshToken;
 
       // Test: Use refresh token (sent in Authorization header)
@@ -131,3 +131,9 @@ describe("Auth API", () => {
     });
   });
 });
+
+async function makeLoginRequestSuccess(testServer: TestServer, credentials: { email: string; password: string; }): Promise<LoginResponse> {
+  const loginResponse = await makeLoginRequest(testServer.baseUrl, credentials);
+  const loginData = await loginResponse.json();
+  return loginData as LoginResponse;
+}
