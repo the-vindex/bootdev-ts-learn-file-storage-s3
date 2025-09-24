@@ -45,7 +45,10 @@ export async function handlerUploadThumbnail(cfg: ApiConfig, req: BunRequest) {
     throw new BadRequestError("Thumbnail file is too large");
   }
 
-  const mediaType = thumbnailFile.type || "application/octet-stream";
+  const mediaType = thumbnailFile.type;
+  if (mediaType !== "image/png" && mediaType !== "image/jpeg") {
+    throw new BadRequestError("Invalid thumbnail mime type");
+  }
 
   // Store the thumbnail data
   const arrayBuffer = await thumbnailFile.arrayBuffer();
@@ -53,7 +56,7 @@ export async function handlerUploadThumbnail(cfg: ApiConfig, req: BunRequest) {
   //determined extension from media type
   const extension = mediaType.split("/")[1];
   if (!extension) {
-    throw new BadRequestError("Invalid thumbnail file");
+    throw new BadRequestError("Invalid thumbnail extension");
   }
 
   //save the thumbnail to the assets directory

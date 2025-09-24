@@ -4,7 +4,7 @@ import { createTestUser, createTestVideo, makeAuthenticatedRequest, makeLoginReq
 import type { User } from "../../src/db/users";
 import type { LoginResponse } from "../../src/api/auth";
 import type { Video } from "../../src/db/videos";
-import { rm } from "node:fs/promises";
+import { rm, lstat } from "node:fs/promises";
 
 describe("Thumbnail Upload", () => {
   let testServer: TestServer;
@@ -15,7 +15,7 @@ describe("Thumbnail Upload", () => {
 
   afterAll(async () => {
     //delete all files in assets directory
-    await rm(testServer.config.assetsRoot, { recursive: true });
+    // await rm(testServer.config.assetsRoot, { recursive: true });
   });
 
   beforeEach(async () => {
@@ -35,6 +35,7 @@ describe("Thumbnail Upload", () => {
   it('should upload a thumbnail for a video', async () => {
     const imageData = ["fake image data"];
     const { response, thumbnail } = await uploadTestThumbnail(imageData, testServer, video, tokens);
+    expect(response.status).toBe(200);
 
     const responseData = await response.json();
     expect(responseData).toBeDefined();
@@ -53,6 +54,37 @@ describe("Thumbnail Upload", () => {
     
     await verifySavedThumbnail(responseData2.thumbnailURL, thumbnail2);
 
+
+  });
+
+  it('should accept only image mime types', async () => {
+    const { response} = await uploadTestThumbnail(["fake image data"], testServer, video, tokens, 
+      new File(["fake image data"], "thumbnail.png", { type: "image/png" }));
+    expect(response.status).toBe(200);
+
+    const { response: response2} = await uploadTestThumbnail(["fake image 2"], testServer, video, tokens, 
+      new File(["fake image 2"], "thumbnail.jpeg", { type: "image/jpeg" }));
+    expect(response2.status).toBe(200);
+
+    const { response: response3} = await uploadTestThumbnail(["fake image 3"], testServer, video, tokens, 
+      new File(["fake image 3"], "thumbnail.pdf", { type: "application/pdf" }));
+    expect(response3.status).toBe(400);
+
+
+    // List files in test assets directory
+    const testAssetsDir = testServer.config.assetsRoot;
+    const files = [];
+    const dir = Bun.file(testAssetsDir);
+    
+    // Use Bun's built-in directory reading
+    const glob = new Bun.Glob("*");
+    for await (const file of glob.scan(testAssetsDir)) {
+      files.push(file);
+    }
+    
+    console.log("Files in test assets directory:", files);
+    expect(files.length).toBeGreaterThanOrEqual(1);
+    expect(files).toContain(`${video.id}.png`);
   });
 });
 
@@ -64,8 +96,8 @@ async function verifySavedThumbnail(thumbnailURL: any, thumbnail: File) {
   expect(thumbnailData.byteLength).toBe(thumbnail.size);
 }
 
-async function uploadTestThumbnail(imageData: string[], testServer: TestServer, video: Video, tokens: LoginResponse) {
-  const thumbnail = new File(imageData, "thumbnail.png", { type: "image/png" });
+async function uploadTestThumbnail(imageData: string[], testServer: TestServer, video: Video, tokens: LoginResponse, thumbnailOverride?: File) {
+  const thumbnail = thumbnailOverride || new File(imageData, "thumbnail.png", { type: "image/png" });
 
   const formData = new FormData();
   formData.append("thumbnail", thumbnail);
@@ -74,7 +106,6 @@ async function uploadTestThumbnail(imageData: string[], testServer: TestServer, 
     method: "POST",
     body: formData,
   });
-  expect(response.status).toBe(200);
 
   return { response, thumbnail };
 }
