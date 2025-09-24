@@ -1,7 +1,7 @@
 import { handlerLogin, handlerRefresh, handlerRevoke } from "./api/auth";
 import {
   errorHandlingMiddleware,
-  cacheMiddleware,
+  noCacheMiddleware,
   withConfig,
 } from "./api/middleware";
 import { handlerUsersCreate } from "./api/users";
@@ -61,7 +61,7 @@ export function createServer(config: ApiConfig, options: { port?: number } = {})
       const path = url.pathname;
 
       if (path.startsWith("/assets")) {
-        return cacheMiddleware(() =>
+        return noCacheMiddleware(() =>
           serveStaticFile(path.replace("/assets/", ""), config.assetsRoot)
         )(req);
       }
