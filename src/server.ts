@@ -12,10 +12,10 @@ import {
   handlerVideosRetrieve,
 } from "./api/video-meta";
 import { handlerUploadVideo } from "./api/videos";
-import { handlerUploadThumbnail, handlerGetThumbnail } from "./api/thumbnails";
 import { handlerReset } from "./api/reset";
 import type { ApiConfig } from "./config";
 import spa from "./app/index.html";
+import { handlerUploadThumbnail } from "./api/thumbnails";
 
 export function createServer(config: ApiConfig, options: { port?: number } = {}) {
   const port = options.port ?? Number(config.port);
@@ -47,9 +47,6 @@ export function createServer(config: ApiConfig, options: { port?: number } = {})
       },
       "/api/thumbnail_upload/:videoId": {
         POST: withConfig(config, handlerUploadThumbnail),
-      },
-      "/api/thumbnails/:videoId": {
-        GET: withConfig(config, handlerGetThumbnail),
       },
       "/api/video_upload/:videoId": {
         POST: withConfig(config, handlerUploadVideo),

@@ -39,17 +39,12 @@ describe("Thumbnail Upload", () => {
 
     expect(response.status).toBe(200);
     const thumbnailUploadResponseData = await response.json();
-    //thumbnail upload returns updated video metadata with thumbnail URL
+    //thumbnail upload returns updated video metadata, image gets embedded into thumbnailURL
     expect(thumbnailUploadResponseData).toBeDefined();
-    expect(thumbnailUploadResponseData.thumbnailURL).toBe(`http://localhost:${testServer.config.port}/api/thumbnails/${video.id}`);
 
-    const thumbnailResponse = await makeAuthenticatedRequest(testServer.baseUrl, `/api/thumbnails/${video.id}`, tokens.token, {
-      method: "GET",
-    });
-    expect(thumbnailResponse.status).toBe(200);
-    const thumbnailData = await thumbnailResponse.arrayBuffer();
-    expect(thumbnailData).toBeDefined();
-    expect(thumbnailData.byteLength).toBe(thumbnail.size);
+    //should match data:<media-type>;base64,<data>
+    expect(thumbnailUploadResponseData.thumbnailURL).toMatch(/^data:image\/png;base64,.*$/);
+
 
 
   });
