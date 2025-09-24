@@ -40,21 +40,21 @@ describe("Thumbnail Upload", () => {
     const responseData = await response.json();
     expect(responseData).toBeDefined();
 
-    //URL should be http://localhost:<port>/assets/<videoID>.<file_extension>
-    expect(responseData.thumbnailURL).toContain(`http://localhost:${testServer.config.port}/assets/${video.id}.png`);
+    //URL should be http://localhost:<port>/assets/<randomText>.<file_extension>
+    expect(responseData.thumbnailURL).toMatch(new RegExp(`http://localhost:${testServer.config.port}/assets/[A-Za-z0-9_-]+\\.png`));
     
-    const asset = Bun.file(`${testServer.config.assetsRoot}/${video.id}.png`);
+    //parset out filename from URL
+    const filename = responseData.thumbnailURL.split('/assets/')[1];
+    const asset = Bun.file(`${testServer.config.assetsRoot}/${filename}`);
     expect(await asset.exists(), "file should exist in assets directory").toBe(true);
 
     await verifySavedThumbnail(responseData.thumbnailURL, thumbnail);
 
     const {response: response2, thumbnail: thumbnail2} = await uploadTestThumbnail(["fake image 2"], testServer, video, tokens);
     const responseData2 = await response2.json();
-    expect(responseData2.thumbnailURL, "thumbnail URL for video is derived from video, not file").toBe(responseData.thumbnailURL);
+    expect(responseData2.thumbnailURL, "thumbnail URL is random, should not be the same").not.toBe(responseData.thumbnailURL);
     
     await verifySavedThumbnail(responseData2.thumbnailURL, thumbnail2);
-
-
   });
 
   it('should accept only image mime types', async () => {
@@ -70,21 +70,6 @@ describe("Thumbnail Upload", () => {
       new File(["fake image 3"], "thumbnail.pdf", { type: "application/pdf" }));
     expect(response3.status).toBe(400);
 
-
-    // List files in test assets directory
-    const testAssetsDir = testServer.config.assetsRoot;
-    const files = [];
-    const dir = Bun.file(testAssetsDir);
-    
-    // Use Bun's built-in directory reading
-    const glob = new Bun.Glob("*");
-    for await (const file of glob.scan(testAssetsDir)) {
-      files.push(file);
-    }
-    
-    console.log("Files in test assets directory:", files);
-    expect(files.length).toBeGreaterThanOrEqual(1);
-    expect(files).toContain(`${video.id}.png`);
   });
 });
 
