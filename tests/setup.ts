@@ -45,6 +45,8 @@ export function createTestServer(config?: ApiConfig): TestServer {
   // Use the same server configuration as the main app, but with port 0 for random assignment
   const server = createServer(testConfig, { port: 0 });
 
+  testConfig.port = server.port!.toString();
+
   return {
     server,
     baseUrl: `http://localhost:${server.port}`,

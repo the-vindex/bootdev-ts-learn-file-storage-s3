@@ -50,9 +50,17 @@ export async function handlerUploadThumbnail(cfg: ApiConfig, req: BunRequest) {
   // Store the thumbnail data
   const arrayBuffer = await thumbnailFile.arrayBuffer();
 
+  //determined extension from media type
+  const extension = mediaType.split("/")[1];
+  if (!extension) {
+    throw new BadRequestError("Invalid thumbnail file");
+  }
 
-  const thumbnailBase64 = Buffer.from(arrayBuffer).toString("base64");
-  const thumbnailURL = `data:${mediaType};base64,${thumbnailBase64}`;
+  //save the thumbnail to the assets directory
+  const assetsDir = Bun.file(`${cfg.assetsRoot}/${videoId}.${extension}`);
+  await assetsDir.write(arrayBuffer);
+
+  const thumbnailURL = `http://localhost:${cfg.port}/assets/${videoId}.${extension}`;
 
   video.thumbnailURL = thumbnailURL;
   updateVideo(cfg.db, video);
